@@ -1,0 +1,71 @@
+# Default values for backend.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 3
+
+image:
+  repository: nareshagrawal/backend:latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+namespace:
+  name: api
+
+progressDeadlineSeconds: 1000
+minReadySeconds: 30
+
+deployment:
+  type: RollingUpdate
+  maxSurge: 1
+  maxUnavailable: 0
+
+configmap:
+  name: backend-config
+  RDS_CONNECTION_STRING:
+  RDS_DB_NAME: backend
+
+secret:
+  dockercred:
+    name: backend-dockercred
+    type: kubernetes.io/dockerconfigjson
+    dockerconfigjson:
+  rdscred:
+    name: backend-rdscred
+    type: Opaque
+    username:
+    password:
+
+service:
+  name: backend-service
+  type: LoadBalancer
+  port: 8080
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "backendserviceaccount"
+
+autoscaling:
+  enabled: true
+  minReplicas: 3  
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 3
+  # targetMemoryUtilizationPercentage: 80
+
+resources: 
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  requests:
+    cpu: 1000m
+    memory: 1288Mi
+  

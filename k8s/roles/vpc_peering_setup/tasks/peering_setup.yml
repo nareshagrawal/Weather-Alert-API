@@ -1,0 +1,98 @@
+---
+
+# RDS VPC Info
+- name: get rds vpc id
+  ec2_vpc_net_facts:
+    region: "{{ region }}"
+    filters:
+      "tag:Name": "{{ vpc_name }}"
+  register: rds_vpc_info
+
+# K8S VPC Info
+- name: get k8s vpc id
+  ec2_vpc_net_info:
+    region: "{{ region }}"
+    filters:
+      "tag:Name": "{{ cluster_name }}"
+  register: k8s_vpc_info
+
+# K8S Route Table Info
+- name: Get k8s route table details
+  ec2_vpc_route_table_info:
+    region: "{{ region }}"
+    filters:
+      vpc-id: "{{ k8s_vpc_info.vpcs[0].id }}"
+      "tag:Name": "{{ cluster_name }}"
+  register: k8s_route
+
+# RDS Route Table Info
+- name: Get RDS route table details
+  ec2_vpc_route_table_info:
+    region: "{{ region }}"
+    filters:
+      vpc-id: "{{ rds_vpc_info.vpcs[0].vpc_id }}"
+  register: rds_route
+
+# RDS IG
+- name: Gather information for RDS IGW
+  ec2_vpc_igw_info:
+    region: "{{ region }}"
+    filters:
+      attachment.vpc-id: "{{ rds_vpc_info.vpcs[0].vpc_id }}"
+  register: rds_igw
+
+# K8S IG
+- name: Gather information for K8S IGW
+  ec2_vpc_igw_info:
+    region: "{{ region }}"
+    filters:
+      attachment.vpc-id: "{{ k8s_vpc_info.vpcs[0].vpc_id }}"
+  register: k8s_igw
+
+# Peering request
+- name: Create local account VPC peering connection
+  ec2_vpc_peer:
+    region: "{{ region }}"
+    vpc_id: "{{ k8s_vpc_info.vpcs[0].vpc_id }}"
+    peer_vpc_id: "{{ rds_vpc_info.vpcs[0].vpc_id }}"
+    state: present
+    tags:
+      Name: Peering
+  register: vpc_peer
+
+# Accepting Peering request
+- name: Accept local VPC peering request
+  ec2_vpc_peer:
+    peering_id: "{{ vpc_peer.peering_id }}"
+    state: accept
+  register: accept_peer
+  
+# Updating RDS Route Table
+- name: Updating RDS Route Table
+  ec2_vpc_route_table:
+    region: "{{ region }}"
+    vpc_id: "{{ rds_vpc_info.vpcs[0].vpc_id }}"
+    route_table_id: "{{ rds_route.route_tables[0].id }}"
+    lookup: id
+    state: present
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ rds_igw.internet_gateways[0].internet_gateway_id }}"
+      - dest: "{{ k8s_vpc_info.vpcs[0].cidr_block }}"
+        vpc_peering_connection_id: "{{ accept_peer.peering_id }}"
+
+# Updating K8S Route Table
+- name: Updating K8S Route Table
+  ec2_vpc_route_table:
+    region: "{{ region }}"
+    vpc_id: "{{ k8s_vpc_info.vpcs[0].vpc_id }}"
+    route_table_id: "{{k8s_route.route_tables[0].id}}"
+    lookup: id
+    state: present
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ k8s_igw.internet_gateways[0].internet_gateway_id }}"
+      - dest: "{{ rds_vpc_info.vpcs[0].cidr_block }}"
+        vpc_peering_connection_id: "{{ accept_peer.peering_id }}"
+
+...

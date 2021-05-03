@@ -1,0 +1,5 @@
+- hosts: localhost
+  gather_facts: false
+  user: root
+  roles:
+    - {role: 'rds_setup', tags: 'create'}

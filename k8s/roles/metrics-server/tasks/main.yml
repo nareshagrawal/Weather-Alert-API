@@ -1,0 +1,3 @@
+---
+# tasks file for metrics-server
+- include: metrics-server.yml

@@ -1,0 +1,84 @@
+---
+# Cheking if cluster exit
+- name: check for cluster
+  command: "kops get clusters"
+  register: clusters
+  ignore_errors: true
+
+# Setting kubernetes_version variable
+
+- name: Configure kubernetes_version variable
+  set_fact:
+    kubernetes_version: "{{ kubernetes_version | default('1.18.10') }}"
+
+- name: Configure Master Node Size variable
+  set_fact:
+    master_node_size: "{{ master_node_size | default('t2.small') }}"
+
+- name: Configure Compute Node Size variable
+  set_fact:
+    compute_node_size: "{{ compute_node_size | default('t2.small') }}"
+
+- name: Configure SSH public key
+  set_fact:
+    ssh_public_key: "{{ ssh_public_key | default('~/.ssh/aws.pub') }}"
+
+- name: Retrieve all AZ in region {{ aws_region }}
+  aws_az_facts:
+    region: "{{ aws_region }}"
+  register: regions_azs
+
+- name: Configure Compute Node Count variable
+  set_fact:
+    compute_node_count:  "{{ compute_node_count | default(1) }}"
+
+# Create Cluster
+- name: create kops cluster
+  command: "kops create cluster \
+              --cloud=aws \
+              --kubernetes-version={{ kubernetes_version }} \
+              --master-zones={{ regions_azs.availability_zones[0].zone_name }},{{ regions_azs.availability_zones[1].zone_name }},{{ regions_azs.availability_zones[2].zone_name }} \
+              --zones={{ regions_azs.availability_zones[0].zone_name }},{{ regions_azs.availability_zones[1].zone_name }},{{ regions_azs.availability_zones[2].zone_name }} \
+              --node-count={{ compute_node_count }} \
+              --topology private \
+              --networking amazonvpc \
+              --node-size={{ compute_node_size }} \
+              --master-size={{ master_node_size }} \
+              --dns-zone={{ dns_zone }}
+              --ssh-public-key={{ ssh_public_key }} \
+              --bastion=true \
+              --state {{ state_store }}
+              --name {{ NAME }}"
+  when: "'{{ NAME }}' not in clusters.stdout"
+
+# Setting authenticationTokenWebhook specs for metrics server
+- name: Setting authenticationTokenWebhook specs
+  shell: "KOPS_FEATURE_FLAGS=SpecOverrideFlag kops set cluster --name={{ NAME }} spec.kubelet.authenticationTokenWebhook=true --state {{ state_store }}"
+
+# Setting authorizationMode specs for metrics server
+- name: Setting authorizationMode specs
+  shell: "KOPS_FEATURE_FLAGS=SpecOverrideFlag kops set cluster --name={{ NAME }} spec.kubelet.authorizationMode=Webhook --state {{ state_store }}"
+
+# Editing cluster maxsize
+- name: get Instance group
+  shell: "kops get instancegroups nodes --state {{ state_store }} --name {{ NAME }} -o yaml > instancegroup.yml "
+
+# Editing cluster maxsize
+- name: Edit Instance group maxsize
+  shell: "yq m -i -x instancegroup.yml ./roles/setup__cluster/templates/clustersize.yml"
+
+# Applying Instances group changes
+- name: Applying Instance group changes
+  shell: "kops replace -f instancegroup.yml --state {{ state_store }} --name {{ NAME }}"
+
+# Deploy cluster
+- name: deploy the cluster
+  command: "kops update cluster --name {{ NAME }} --state {{ state_store }}  --yes"
+
+# Valiadte the cluster
+- name: validate the cluster 
+  command: "kops validate cluster --name {{ NAME }} --state {{ state_store }}"
+  retries: 20
+  delay: 60
+  register: result
+  until: result.rc == 0

@@ -1,0 +1,18 @@
+---
+- name: Adding crds for cert-manager
+  shell: "kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.crds.yaml"
+
+- name: Create cert-manager namespace
+  shell: "kubectl create namespace cert-manager --dry-run -o yaml | kubectl apply -f -"
+
+- name: Adding jetstack repo to helm
+  shell: "helm repo add jetstack https://charts.jetstack.io"
+
+- name: Update helm repos
+  shell: "helm repo update"
+
+- name: Wait for crds become available
+  shell: "sleep 15"
+
+- name: Install cert-manager helm chart
+  shell: "helm install cert-manager --version v0.14.1 --namespace cert-manager jetstack/cert-manager"

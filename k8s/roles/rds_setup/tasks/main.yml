@@ -1,0 +1,5 @@
+---
+# tasks file for rds_setup
+
+- include: networkSetup.yml
+- include: rdsInstance_Launch.yml

@@ -1,0 +1,6 @@
+---
+- name: Create kafka namespace
+  shell: "kubectl create namespace kafka --dry-run -o yaml | kubectl apply -f -"
+
+- name: Install kafka and kafka_exporter Helm chart
+  shell: "helm install kafka --namespace kafka ./helm/kafka/"

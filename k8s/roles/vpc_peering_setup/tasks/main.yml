@@ -1,0 +1,4 @@
+---
+# tasks file for vpc_peering_setup
+
+- include: peering_setup.yml

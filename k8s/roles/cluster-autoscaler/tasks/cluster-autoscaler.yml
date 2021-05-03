@@ -1,0 +1,15 @@
+---
+- name: Assign a policy to a role
+  iam_policy:
+    iam_type: role
+    iam_name: "nodes.{{ NAME }}"
+    region: "{{ region }}"
+    policy_name: aws-cluster-autoscaler
+    state: present
+    policy_document: roles/cluster-autoscaler/templates/policy.json
+
+- name: Install cluster-autoscaler
+  shell: "helm install {{ clusterAutoscaler_releaseName }} --namespace kube-system roles/cluster-autoscaler/tasks/helm \
+          --set 'autoscalingGroups[0].name=nodes.{{ NAME }}' \
+          --set 'autoscalingGroups[0].maxSize=8' \
+          --set 'autoscalingGroups[0].minSize=3'"

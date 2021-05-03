@@ -1,0 +1,13 @@
+---
+# vars file for rds_terminate
+
+region: "us-east-1"
+
+rds_instance_name: dbInstance
+
+vpc_name: "RDS_VPC"
+route_name: "RDS_Route_Table"
+
+subnet_group_name: RDS_Subnet_Group
+
+securitygroup_name: RDS_Security_Group

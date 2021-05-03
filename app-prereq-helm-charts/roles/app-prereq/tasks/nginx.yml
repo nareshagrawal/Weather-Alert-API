@@ -1,0 +1,28 @@
+- name: Create API namespace
+  shell: "kubectl create namespace api --dry-run -o yaml | kubectl apply -f -"
+
+- name: Create nginx namespace
+  shell: "kubectl create namespace nginx --dry-run -o yaml | kubectl apply -f -"
+
+- name: Install nginx Helm chart
+  shell: "helm install nginx --namespace nginx ./helm/nginx/ --set controller.kind=DaemonSet"
+
+- name: Wait for service url become available
+  shell: "sleep 15"
+
+- name: Getting service url
+  shell: "kubectl describe service nginx-ingress-nginx-controller -n nginx | grep 'LoadBalancer Ingress'|awk -F':' '{print $2 }'|sed 's/ //g'"
+  register: nginx_url
+
+- name: Add A record for the nginx-ingress ALB in Route53
+  route53:
+    state: present
+    hosted_zone_id: "{{ zone_id }}"
+    record: "{{ webapp_domain }}"
+    type: CNAME
+    ttl: 60
+    value: "{{ nginx_url.stdout }}"
+    wait: true
+    overwrite: true
+
+

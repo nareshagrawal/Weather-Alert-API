@@ -1,0 +1,12 @@
+---
+- name: Create logging namespace
+  shell: "kubectl create namespace logging --dry-run -o yaml | kubectl apply -f -"
+
+- name: Install efk_stack Helm chart
+  shell: "helm install logging --namespace logging ./helm/efk-stack/"
+
+- name: Wait for elasticsearch_exporter become available
+  shell: "sleep 15"
+
+- name: Install elasticsearch_exporter Helm chart
+  shell: "helm install es-expoter --namespace logging ./helm/elasticsearch-exporter/"

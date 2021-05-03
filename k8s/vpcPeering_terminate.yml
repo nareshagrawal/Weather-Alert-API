@@ -1,0 +1,6 @@
+---
+- hosts: localhost
+  gather_facts: false
+  user: root
+  roles:
+    - {role: 'vpc_peering_terminate', tags: 'terminate'}

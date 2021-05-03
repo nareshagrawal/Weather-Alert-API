@@ -1,0 +1,4 @@
+---
+# vars file for setup__cluster
+
+ aws_region: us-east-1

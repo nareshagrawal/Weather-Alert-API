@@ -1,0 +1,12 @@
+---
+
+# # Cheking if cluster exit
+# - name: check for cluster
+#   command: "kops get clusters"
+#   register: clusters
+#   ignore_errors: true
+
+# Terminating cluster
+- name: delete cluster
+  command: "kops delete cluster --name {{ NAME }} --state {{ state_store }} --yes"
+ # when: "'{{ NAME }}' in clusters.stdout"

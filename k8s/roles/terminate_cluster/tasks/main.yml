@@ -1,0 +1,4 @@
+---
+# tasks file for terminate_cluster
+
+- include: terminate_cluster.yml

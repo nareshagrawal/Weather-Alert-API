@@ -1,0 +1,6 @@
+---
+# vars file for vpc_peering_setup
+
+region: "us-east-1"
+
+vpc_name: "RDS_VPC"

@@ -1,0 +1,9 @@
+---
+- name: Create monitoring namespace
+  shell: "kubectl create namespace monitoring --dry-run -o yaml | kubectl apply -f -"
+
+- name: Install prometheus Helm chart
+  shell: "helm install prometheus --namespace monitoring ./helm/prometheus/"
+
+- name: Install grafana Helm chart
+  shell: "helm install grafana --namespace monitoring ./helm/grafana/ --set adminPassword={{ grafanaPassword }}"

@@ -1,0 +1,87 @@
+---
+# VPC Info
+- name: get vpc id
+  ec2_vpc_net_facts:
+    region: "{{ region }}"
+    filters:
+      "tag:Name": "{{ vpc_name }}"
+  register: vpc_info
+
+# Security Group Info
+- name: Security group info 
+  ec2_group_info:
+    filters:
+      group-name: "{{securitygroup_name}}"
+  register: security_details
+
+# Delete RDS Instance
+- name: deleting rds instance
+  rds:
+    command: delete
+    instance_name: "{{ rds_instance_name }}"
+    region: "{{ region }}"
+    wait: yes
+    wait_timeout: 3000
+
+# Delete RDS Subnet Group
+- name: Delete RDS subnet group
+  rds_subnet_group:
+    state: absent
+    region: "{{ region }}"
+    name: "{{ subnet_group_name }}"
+
+# Delete RDS Security group
+- name: Delete Security group
+  ec2_group:
+    description: RDS Security Group
+    region: "{{ region }}"
+    group_id: "{{security_details.security_groups[0].group_id}}"
+    state: absent
+
+# Delete Subnet 1
+- name: delete subnet1
+  ec2_vpc_subnet:
+    state: absent
+    vpc_id: "{{vpc_info.vpcs[0].vpc_id}}"
+    cidr: "{{subnet_cidr_1}}"
+    region: "{{ region }}"
+
+# Delete Subnet 2
+- name: delete subnet2
+  ec2_vpc_subnet:
+    state: absent
+    vpc_id: "{{vpc_info.vpcs[0].vpc_id}}"
+    cidr: "{{subnet_cidr_2}}"
+    region: "{{ region }}"
+  register: vpc_subnet
+
+# Get Route table
+- name: Get route table details
+  ec2_vpc_route_table_facts:
+    region: "{{ region }}"
+    filters:
+      "tag:Name": "{{route_name}}"
+  register: route_details
+
+# Delete Route table   
+- name: Delete routing table
+  ec2_vpc_route_table:
+    route_table_id: "{{route_details.route_tables[0].id}}"
+    lookup: id  
+    state: absent
+
+# Delete IG
+- name: delete igw
+  ec2_vpc_igw:
+    vpc_id: "{{vpc_info.vpcs[0].vpc_id}}"
+    state: absent
+ 
+# Delete VPC
+- name: Delete vpc
+  ec2_vpc_net:
+    name: "{{ vpc_name }}" 
+    cidr_block: "{{ vpc_cidr }}"
+    region: "{{ region }}"
+    state: absent
+
+...

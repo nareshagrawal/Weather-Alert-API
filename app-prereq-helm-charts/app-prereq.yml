@@ -1,0 +1,6 @@
+- hosts: local
+  gather_facts: false
+  user: root
+
+  roles:
+    - {role: 'app-prereq', tags: 'create'}

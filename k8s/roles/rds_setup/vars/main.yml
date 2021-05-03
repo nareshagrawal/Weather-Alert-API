@@ -1,0 +1,22 @@
+---
+# vars file for rds_setup
+
+region: "us-east-1"
+
+# VPC
+vpc_name: "RDS_VPC"
+
+igw_name: "IGW"
+route_name: "RDS_Route_Table"
+
+# Subnet
+subnet_name_1: "RDS_Subnet_1"
+subnet_name_2: "RDS_Subnet_2"
+
+securitygroup_name: "RDS_Security_Group"
+
+rds_instance_name: "dbInstance"
+
+rds_dbname: "backend"
+
+subnet_group_name: "RDS_Subnet_Group"

@@ -1,0 +1,4 @@
+---
+# vars file for vpc_peering_terminate
+
+region: "us-east-1"

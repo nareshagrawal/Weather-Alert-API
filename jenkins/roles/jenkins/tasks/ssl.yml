@@ -1,0 +1,113 @@
+---
+
+- name: Update and upgrade apt packages
+  become: true
+  apt:
+    upgrade: yes
+    update_cache: yes
+
+- name: install openjdk
+  apt:
+    name: openjdk-11-jdk
+    state: latest
+  become: true
+
+- name: install maven
+  apt:
+    name: maven
+  become: true
+
+- name: ensure the jenkins apt repository key is installed
+  apt_key:
+   url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+   state: present
+  become: true
+
+- name: ensure the repository is configured
+  apt_repository:
+   repo: deb https://pkg.jenkins.io/debian-stable binary/
+   state: present
+  become: true
+
+- name: ensure jenkins is installed
+  apt:
+    name: jenkins
+    update_cache: yes
+  become: true
+
+- name: ensure jenkins is running
+  service:
+   name: jenkins
+   state: started
+  become: true
+
+- name : add cerbot repository
+  apt_repository:
+   repo: ppa:certbot/certbot
+   state: present
+  become: true
+
+- name: intsall nginx
+  apt:
+    name: nginx
+    state: latest
+  become: true
+
+- name: intsall python-certbot-nginx
+  apt:
+    name: python-certbot-nginx
+    state: latest
+  become: true
+
+- name: Remove file (delete file)
+  file:
+    path:  /etc/nginx/sites-available/default
+    state: absent
+  become: true
+
+- name: set up nginx configuration block
+  blockinfile:
+    path:  /etc/nginx/sites-available/default
+    create: yes
+    block: |
+      upstream jenkins {
+        server 127.0.0.1:8080 fail_timeout=0;
+      }
+      server {
+              listen 80 default_server;
+              listen [::]:80 default_server;
+              root /var/www/html;
+              index index.html index.htm index.nginx-debian.html;
+              server_name {{ jenkins_subDomain }};
+              location / {
+                      proxy_set_header        Host $host:$server_port;
+                      proxy_set_header        X-Real-IP $remote_addr;
+                      proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+                      proxy_set_header        X-Forwarded-Proto $scheme;
+                      proxy_set_header        Upgrade $http_upgrade;
+                      proxy_set_header        Connection "upgrade";
+                      proxy_pass              http://jenkins;
+              }
+      }
+  become: true
+
+- name: set up nginx files
+  command: sudo nginx -t
+
+- name: restart jenkins
+  service:
+    name: nginx
+    state: restarted
+  become: true
+
+- name: create letsencrypt certificate
+  command: "sudo certbot --nginx -m {{ certbot_email }} -d {{ jenkins_subDomain }} --agree-tos --reinstall --redirect --staging"
+  when: staging_cert|bool == true
+
+- name: create letsencrypt certificate
+  command: "sudo certbot --nginx -m {{ certbot_email }} -d {{ jenkins_subDomain }} --agree-tos --reinstall --redirect "
+  when: staging_cert|bool == false
+
+- name: Print password
+  command: "sudo cat /var/lib/jenkins/secrets/initialAdminPassword"
+...

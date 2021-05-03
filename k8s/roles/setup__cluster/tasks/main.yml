@@ -1,0 +1,4 @@
+---
+# tasks file for setup__cluster
+
+- include: setup_cluster.yml

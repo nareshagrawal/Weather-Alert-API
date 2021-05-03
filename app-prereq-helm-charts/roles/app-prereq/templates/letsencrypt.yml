@@ -1,0 +1,19 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: ClusterIssuer
+metadata:
+  name: app-nareshagrawal
+  labels:
+    name: app-nareshagrawal
+spec:
+  acme:
+    # Email address used for ACME registration
+    email: agrawal.nar@northeastern.edu
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      # Name of a secret used to store the ACME account private key
+      name: app-nareshagrawal-private-key
+    # Add a single challenge solver, HTTP01 using nginx
+    solvers:
+    - http01:
+        ingress:
+          class: nginx

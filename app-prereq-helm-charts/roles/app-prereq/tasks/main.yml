@@ -1,0 +1,8 @@
+---
+# tasks file for app-prereq
+- include: nginx.yml
+- include: kafka.yml
+- include: efk-stack.yml
+- include: prometheus-grafana.yml
+- include: tls-letsencrypt.yml
+- include: dashboard.yml

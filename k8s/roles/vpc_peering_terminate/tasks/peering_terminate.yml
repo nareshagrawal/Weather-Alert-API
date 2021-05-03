@@ -1,0 +1,18 @@
+---
+
+# List all vpc peers
+- name: List all vpc peers
+  ec2_vpc_peering_info:
+    region: "{{ region }}"
+    filters:
+      "tag:Name": Peering
+      "status-code": active
+  register: vpc_peer
+
+# Delete peering
+- name: delete a local VPC peering Connection
+  ec2_vpc_peer:
+    region: "{{ region }}"
+    peering_id: "{{ vpc_peer.result[0].vpc_peering_connection_id }}"
+    state: absent
+  when: vpc_peer.result|length != 0

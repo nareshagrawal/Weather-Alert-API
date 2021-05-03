@@ -1,0 +1,4 @@
+---
+# tasks file for rds_terminate
+
+- include: rds_terminate.yml
