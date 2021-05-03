@@ -3,6 +3,8 @@
 ## Objective
 Microservices based REST APIs deployed on Kubernetes cluster using Helm Charts via Jenkins CI/CD pipeline
 
+#### Link to Project Organization:  <a href="https://github.com/agrawal-nar-Advance-Cloud">https://github.com/agrawal-nar-Advance-Cloud</a>
+
 ### Maintainer
 <table>
     <thead>
@@ -65,5 +67,3 @@ $ cd app-prereq-helm-charts
 ```
 
 #### Detailed README will find in respective folders
-
-#### Link to Project Organization:  <a href="https://github.com/agrawal-nar-Advance-Cloud">https://github.com/agrawal-nar-Advance-Cloud</a>
