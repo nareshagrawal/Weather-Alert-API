@@ -1,15 +1,7 @@
-# Creating a Key Pair for EC Instance
-- name: Create a new ec2 key pair
-  ec2_key:
-    name: aws
-    region: "{{ region }}"
-    key_material: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC3Gf14F9l1Qx8cu1gdqcG+9XMZbX50Ik3MMCsXEt3WqizN2Bq+IyB043yB0G1e4c9nEkLd878C/ikfiUnMzyOLO6VJ2S3v+nK7mkEoR3tLK6juMZ72xLKMvscitq2uiI0POPE8t05nXLzYA9dXEPDEYn3CfJa32ljcs3yeIK9SIOTsLewUlJyISeC9K+QlAVQ5Lliw6rYi1QCtP8C4IlugO5Ih87A7Ru8ofMRQSyhFkQNSC1KwGCPdFkAGJZGWDC6YzQoDHNTIH9fDxZpqumBnzg594OpPrlG07AhzW1pknF2bVc0+G5BFcU4zMWRHKPTHBDm04tA0+e7T7uIr5azz naresh@naresh-dell
-  register: keypair
-
 #Creating and Launching EC2 instance
 - name: Create a Ec2 Instance
   ec2_instance:
-    key_name: "{{ keypair.key.name  }}"
+    key_name: "{{ ssh_key_name }}"
     instance_type : "{{ instance_type }}"
     image_id: ami-0817d428a6fb68645
     security_group: "{{ security_group.group_id }}"

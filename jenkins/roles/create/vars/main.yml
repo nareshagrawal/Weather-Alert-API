@@ -1,6 +1,7 @@
 ---
 # vars file for create
 
+ssh_key_name: "aws"
 region: "us-east-1"
 # VPC
 vpc_cidr: 10.10.0.0/24
